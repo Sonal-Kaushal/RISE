@@ -111,6 +111,25 @@ public class ForgotPasswordController {
         response.put("message", "Password has been successfully reset!");
         return ResponseEntity.ok().body(response);
     }
+//    @PostMapping("/change-password")
+//    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+//        String email = changePasswordRequest.getEmail();
+//        String oldPassword = changePasswordRequest.getOldPassword();
+//        String newPassword = changePasswordRequest.getNewPassword();
+//
+//        Employee user = userService.findByEmail(email);
+//
+//        if (user == null) {
+//            return ResponseEntity.status(404).body("User not found");
+//        }
+//
+//        if (!bCryptPasswordEncoder.matches(oldPassword, user.getPassword())) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Old password is incorrect");
+//        }
+//
+//        userService.updatePassword(user, newPassword);
+//        return ResponseEntity.ok("Password has been successfully changed");
+//    }
 
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
@@ -118,19 +137,19 @@ public class ForgotPasswordController {
         String oldPassword = changePasswordRequest.getOldPassword();
         String newPassword = changePasswordRequest.getNewPassword();
 
-
         Employee user = userService.findByEmail(email);
 
         if (user == null) {
-            return ResponseEntity.status(404).body("User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
         }
 
-        if(!bCryptPasswordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Old password is incorrect");
+        if (!bCryptPasswordEncoder.matches(oldPassword, user.getPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Old password is incorrect"));
         }
 
         userService.updatePassword(user, newPassword);
-        return ResponseEntity.ok("Password has been successfully changed");
+        return ResponseEntity.ok(Map.of("message", "Password has been successfully changed"));
     }
+
 }
 
