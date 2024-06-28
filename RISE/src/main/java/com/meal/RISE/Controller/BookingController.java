@@ -34,19 +34,9 @@ public class BookingController {
 
     @Autowired
 
-    private BookingRepository bookingRepository ;
-
-    @Autowired
-
     private NotificationService notificationService;
 
-    @Autowired
-    private CustomUserService customUserService;
 
-    public BookingController(CustomUserService customUserService, BookingRepository bookingRepository) {
-        this.customUserService = customUserService;
-        this.bookingRepository = bookingRepository;
-    }
     @PostMapping("/quickBook")
     public ResponseEntity<?> quickBookMeal(@RequestBody QuickBookingRequestDto request) {
         try {
@@ -56,10 +46,6 @@ public class BookingController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
-
-
-
 
 @PostMapping("/bulk")
 public ResponseEntity<?> bookMeals(@RequestBody BookingRequestDto request) {
@@ -81,25 +67,16 @@ public ResponseEntity<?> bookMeals(@RequestBody BookingRequestDto request) {
         }
     }
 
-
-
-
-
-
-
     @PostMapping("/cancel")
     public ResponseEntity<Map<String, String>> cancelBooking(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate cancellationDate) {
         try {
             return bookingService.cancelBooking(cancellationDate);
         } catch (Exception e) {
-            // Handle any other exceptions
-            e.printStackTrace(); // Print the stack trace for debugging
+
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "An error occurred: " + e.getMessage()));
         }
     }
-
-
-
 
 
     @GetMapping("/dates/{userId}")

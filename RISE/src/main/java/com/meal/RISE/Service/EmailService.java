@@ -21,19 +21,6 @@ public class EmailService {
     @Autowired
     private SpringTemplateEngine templateEngine;
 
-//    public void sendOtpEmail(String to,String otp) {
-//        MimeMessage message = mailSender.createMimeMessage();
-//        MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
-//
-//        try {
-//            helper.setTo(to);
-//            helper.setSubject("Your OTP Code");
-//            helper.setText("Your OTP code is: " + otp);
-//            mailSender.send(message);
-//        } catch (MessagingException e) {
-//            e.printStackTrace();
-//        }
-//    }
 
     public void sendOtpEmail(String to, String name,String otp) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();

@@ -29,7 +29,7 @@ public class Booking {
     private LocalDate startDate;
 
     private LocalDate endDate;
-//
+    //
 //    @Enumerated(EnumType.STRING)
     private MealType mealType;
 

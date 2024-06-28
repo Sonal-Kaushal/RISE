@@ -9,7 +9,6 @@ import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,19 +33,16 @@ public class ForgotPasswordController {
     @Autowired
     UserService userService;
 
-    @GetMapping("/employee/{id}")
-    public ResponseEntity<Employee> getEmployeeById(@PathVariable Long id) {
-        Optional<Employee> employee = userService.getEmployeeById(id);
-        if (employee.isPresent()) {
-            return ResponseEntity.ok(employee.get());
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-    }
+
+@GetMapping("/employee/{id}")
+public ResponseEntity<String> getEmployeeById(@PathVariable Long id) {
+    Optional<Employee> employee = userService.getEmployeeById(id);
+    return employee.map(value -> ResponseEntity.ok(value.getName())).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+}
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, String>> sendOtp(@RequestParam String email) throws MessagingException {
         Map<String, String> response = new HashMap<>();
-        Employee employee = userService.findByEmail(email);
+        Employee employee = userService.findByEmail("a@a.com");
 
         if (employee == null) {
             response.put("message", "User not found");
@@ -111,25 +107,7 @@ public class ForgotPasswordController {
         response.put("message", "Password has been successfully reset!");
         return ResponseEntity.ok().body(response);
     }
-//    @PostMapping("/change-password")
-//    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
-//        String email = changePasswordRequest.getEmail();
-//        String oldPassword = changePasswordRequest.getOldPassword();
-//        String newPassword = changePasswordRequest.getNewPassword();
-//
-//        Employee user = userService.findByEmail(email);
-//
-//        if (user == null) {
-//            return ResponseEntity.status(404).body("User not found");
-//        }
-//
-//        if (!bCryptPasswordEncoder.matches(oldPassword, user.getPassword())) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Old password is incorrect");
-//        }
-//
-//        userService.updatePassword(user, newPassword);
-//        return ResponseEntity.ok("Password has been successfully changed");
-//    }
+
 
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
@@ -150,6 +128,5 @@ public class ForgotPasswordController {
         userService.updatePassword(user, newPassword);
         return ResponseEntity.ok(Map.of("message", "Password has been successfully changed"));
     }
-
 }
 

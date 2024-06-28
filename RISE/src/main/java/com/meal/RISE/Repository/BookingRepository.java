@@ -14,10 +14,10 @@ import java.util.Optional;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 //    List<Booking> findByEmployeeIdAndStartDateBetween(Long employeeId, LocalDate startDate, LocalDate endDate);
 //
-
+     boolean existsBystartDateAndStatus(LocalDate startDate, Status status);
     Optional<Object> findByEmployeeIdAndStartDateBetween(Long id, LocalDate startDate, LocalDate endDate);
 
-    List<Booking> findByEmployeeIdAndStartDate(Long userId, LocalDate startDate);
+    List<Booking> findByEmployeeIdAndStartDateAndStatus(Long userId, LocalDate startDate,Status status);
 
     List<Booking> findByEmployee(Employee loggedInUser);
 
@@ -26,6 +26,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByStartDate(LocalDate cancellationDate);
 
     List<Booking> findByEmployeeAndStatus(Employee user, Status status);
+
+    List<Booking> findByEmployeeIdAndStartDate(Long userId, LocalDate date);
+
+//    Booking findByEmployeeId(Long userId);
+
+    List<Booking> findByEmployeeId(Long employeeId);
+
+
 
 //    List<Booking> findByEmployeeAndStartDate(Employee employee, LocalDate date);
 }
