@@ -16,6 +16,7 @@ public class AuthenticationResponse {
 
     private Long userId;
 
+    private String name;
     public AuthenticationResponse(String jwt, Long userId, UserRole userRole) {
         this.jwt = jwt;
         this.userId = userId;
@@ -48,5 +49,13 @@ public class AuthenticationResponse {
 
     public void setUserRole(UserRole userRole) {
         this.userRole = userRole;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

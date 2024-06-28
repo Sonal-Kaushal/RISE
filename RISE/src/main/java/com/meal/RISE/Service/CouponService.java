@@ -2,7 +2,7 @@ package com.meal.RISE.Service;
 
 import com.meal.RISE.Entity.Coupon;
 import com.meal.RISE.Entity.Booking;
-import com.meal.RISE.Enums.Status;
+import com.meal.RISE.Enums.CouponStatus;
 import com.meal.RISE.Repository.CouponRepository;
 import com.meal.RISE.Repository.BookingRepository;
 
@@ -13,9 +13,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -28,41 +29,52 @@ public class CouponService {
     private BookingRepository bookingRepository;
 
     @Transactional
-
-    public Coupon generateCoupon(Long id) {
-        Booking booking = bookingRepository.findById(id)
+    public ResponseEntity<?> generateCoupon(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        // Check if today's date matches the booking start date
-        LocalDate today = LocalDate.now();
-        if (!today.equals(booking.getStartDate())) {
-            throw new RuntimeException("Coupon can only be generated on the booking date");
-        }
-
-        // Check if a coupon has already been generated for today's booking
+        // Check if a coupon has already been generated for this booking
         Coupon existingCoupon = booking.getCoupon();
-        if (existingCoupon != null && existingCoupon.getExpirationTime().toLocalDate().isEqual(today)) {
-            throw new RuntimeException("Coupon has already been generated for today's booking");
+        if (existingCoupon != null) {
+            String errorMessage = "Coupon has already been generated for this booking";
+            System.out.println(errorMessage);
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", errorMessage);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         }
 
         // Create a new coupon
         Coupon newCoupon = new Coupon();
         newCoupon.setCouponId(generateUniqueCouponId());
-        newCoupon.setExpirationTime(LocalDateTime.now().plusSeconds(1)); // Set expiration time to 1 second
-        newCoupon.setStatus(Status.CREATED); // Set status to created
+        newCoupon.setExpirationTime(LocalDateTime.now().plusSeconds(30));
+        newCoupon.setStatus(CouponStatus.ACTIVE);
         newCoupon.setBooking(booking);
         booking.setCoupon(newCoupon);
 
-        return couponRepository.save(newCoupon);
+        couponRepository.save(newCoupon);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("couponId", newCoupon.getCouponId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
-
+    @Transactional
     public void redeemCoupon(String couponId) {
         Coupon coupon = couponRepository.findByCouponId(couponId);
         if (coupon != null && coupon.getExpirationTime().isAfter(LocalDateTime.now())) {
-            coupon.setStatus(Status.REDEEMED);
+            coupon.setStatus(CouponStatus.REDEEMED);
+            coupon.setExpirationTime(LocalDateTime.now().plusSeconds(5)); // Set expiration time to 5 seconds after redemption
             couponRepository.save(coupon);
+            System.out.println("Coupon redeemed. New expiration time: " + coupon.getExpirationTime());
+
+            // Verify the status change
+            Coupon updatedCoupon = couponRepository.findByCouponId(couponId);
+            System.out.println("Updated coupon status: " + updatedCoupon.getStatus());
         } else {
+            if (coupon == null) {
+                System.out.println("Coupon not found");
+            } else {
+                System.out.println("Coupon expired. Current time: " + LocalDateTime.now() + " Expiration time: " + coupon.getExpirationTime());
+            }
             throw new RuntimeException("Coupon is either expired or does not exist");
         }
     }
@@ -82,25 +94,15 @@ public class CouponService {
         return couponId;
     }
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 1000) // Check every second
     public void deleteExpiredCoupons() {
         LocalDateTime now = LocalDateTime.now();
         List<Coupon> expiredCoupons = couponRepository.findByExpirationTimeBefore(now);
         for (Coupon coupon : expiredCoupons) {
+            System.out.println("Deleting expired coupon with ID: " + coupon.getCouponId());
             couponRepository.delete(coupon);
         }
     }
 
-    public ResponseEntity<String> validateCoupon(String couponId) {
-        Coupon coupon = couponRepository.findByCouponId(couponId);
-        if (coupon != null) {
-            if (coupon.getExpirationTime().isBefore(LocalDateTime.now())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Coupon is expired");
-            } else {
-                return ResponseEntity.ok("Coupon is valid");
-            }
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Coupon not found");
-        }
-    }
+
 }

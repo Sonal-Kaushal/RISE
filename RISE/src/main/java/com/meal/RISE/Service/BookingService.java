@@ -35,11 +35,14 @@ public class BookingService {
 
     private final UserDetailsServiceImpl userDetailsService;
 
+    @Autowired
+    public BookingService(BookingRepository bookingRepository, UserDetailsServiceImpl userDetailsService) {
+        this.bookingRepository = bookingRepository;
+        this.userDetailsService = userDetailsService;
+    }
+
     private static final LocalTime BOOKING_CUTOFF_TIME = LocalTime.of(20, 0);
 
-//    public BookingService(UserDetailsServiceImpl userDetailsService) {
-//        this.userDetailsService = userDetailsService;
-//    }
 
     public Booking quickBookMeal(QuickBookingRequestDto requestDto) throws Exception {
         Long userId = requestDto.getUserId();
@@ -75,7 +78,7 @@ public class BookingService {
         LocalDate endDate = requestDto.getEndDate();
         MealType mealType = requestDto.getMealType();
         LocalDate today = LocalDate.now();
-        if (startDate.isBefore(today.plusDays(2))) {
+        if (startDate.isBefore(today.plusDays(1))) {
             throw new IllegalArgumentException("Bookings cannot be made for today or yesterday.");
         }
         if (LocalTime.now().isAfter(BOOKING_CUTOFF_TIME)) {
@@ -119,7 +122,7 @@ public class BookingService {
         MealType mealType = requestDto.getMealType();
 
         LocalDate today = LocalDate.now();
-        if (startDate.isBefore(today.plusDays(2))) {
+        if (startDate.isBefore(today.plusDays(1))) {
             throw new IllegalArgumentException("Bookings cannot be made for today or yesterday.");
         }
         if (LocalTime.now().isAfter(BOOKING_CUTOFF_TIME)) {
@@ -235,22 +238,6 @@ public class BookingService {
         notificationService.sendNotification(notification);
     }
 
-//    public String cancelBooking(Long bookingId) {
-//        Booking booking = bookingRepository.findById(bookingId).orElse(null);
-//        if (booking == null) {
-//            return "Booking not found.";
-//        }
-//
-//        // Set the booking status to cancelled
-//        booking.setStatus(Status.CANCELLED);
-//        bookingRepository.save(booking);
-//
-//        // Trigger cancellation notification
-//        triggerCancellationNotification(booking.getEmployee().getId(), "Booking canceled successfully.");
-//
-//        return "Booking canceled successfully.";
-//    }
-
 
 
     public ResponseEntity<Map<String, String>> cancelBooking(LocalDate cancellationDate) throws Exception {
@@ -296,63 +283,32 @@ public class BookingService {
 
 
 
-    @Autowired
-    public BookingService(BookingRepository bookingRepository, UserDetailsServiceImpl userDetailsService) {
-        this.bookingRepository = bookingRepository;
-        this.userDetailsService = userDetailsService;
-    }
 
-//    public List<LocalDate> getBookingDatesForUser(Long userId) {
-//        // Find the employee by userId
-//        Employee user = employeeRepository.findById(userId)
-//                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-//
-//        // Retrieve bookings associated with the user
-//        List<Booking> bookings = bookingRepository.findByEmployee(user);
-//
-//        // Extract booking dates from the bookings
-//        List<LocalDate> bookingDates = new ArrayList<>();
-//        for (Booking booking : bookings) {
-//            // Add each booking date to the list
-//            LocalDate startDate = booking.getStartDate();
-//            LocalDate endDate = booking.getEndDate();
-//
-//            // Add all dates between start date and end date (inclusive)
-//            while (!startDate.isAfter(endDate)) {
-//                bookingDates.add(startDate);
-//                startDate = startDate.plusDays(1);
-//            }
-//        }
-//
-//        return bookingDates;
-//    }
-public List<LocalDate> getBookingDatesForUser(Long userId) {
-    // Find the employee by userId
-    Employee user = employeeRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-    // Retrieve bookings associated with the user and filter only active bookings
-    List<Booking> bookings = bookingRepository.findByEmployeeAndStatus(user, Status.CONFIRMED);
+    public List<LocalDate> getBookingDatesForUser(Long userId) {
+        // Find the employee by userId
+        Employee user = employeeRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-    // Extract booking dates from the bookings
-    List<LocalDate> bookingDates = new ArrayList<>();
-    for (Booking booking : bookings) {
-        // Add each booking date to the list
-        LocalDate startDate = booking.getStartDate();
-        LocalDate endDate = booking.getEndDate();
+        // Retrieve bookings associated with the user and filter only active bookings
+        List<Booking> bookings = bookingRepository.findByEmployeeAndStatus(user, Status.CONFIRMED);
 
-        // Add all dates between start date and end date (inclusive)
-        while (!startDate.isAfter(endDate)) {
-            bookingDates.add(startDate);
-            startDate = startDate.plusDays(1);
+        // Extract booking dates from the bookings
+        List<LocalDate> bookingDates = new ArrayList<>();
+        for (Booking booking : bookings) {
+            // Add each booking date to the list
+            LocalDate startDate = booking.getStartDate();
+            LocalDate endDate = booking.getEndDate();
+
+            // Add all dates between start date and end date (inclusive)
+            while (!startDate.isAfter(endDate)) {
+                bookingDates.add(startDate);
+                startDate = startDate.plusDays(1);
+            }
         }
+
+        return bookingDates;
     }
 
-    return bookingDates;
-}
-
 
 }
-
-
-

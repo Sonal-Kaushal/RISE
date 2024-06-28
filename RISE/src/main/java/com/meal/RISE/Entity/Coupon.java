@@ -1,12 +1,13 @@
 package com.meal.RISE.Entity;
 
-import com.meal.RISE.Enums.Status;
+import com.meal.RISE.Enums.CouponStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @AllArgsConstructor
@@ -22,12 +23,13 @@ public class Coupon {
     private LocalDateTime expirationTime;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="booking_Id", referencedColumnName = "id")
+    @JoinColumn(name = "booking_Id", referencedColumnName = "id")
     private Booking booking;
+    private CouponStatus status;
 
+    public Coupon() {
 
-    private Status status ;
-
+    }
 
     public Booking getBooking() {
         return booking;
@@ -61,17 +63,15 @@ public class Coupon {
         this.id = id;
     }
 
-    public Coupon(){}
-
-    public Status getStatus() {
+    public CouponStatus getStatus() {
         return status;
     }
-    @Enumerated(EnumType.STRING)
-    public void setStatus(Status status) {
+
+    public void setStatus(CouponStatus status) {
         this.status = status;
     }
 
-    public Coupon(Booking booking, String couponId, LocalDateTime expirationTime, Long id, Status status) {
+    public Coupon(Booking booking, String couponId, LocalDateTime expirationTime, Long id, CouponStatus status) {
         this.booking = booking;
         this.couponId = couponId;
         this.expirationTime = expirationTime;

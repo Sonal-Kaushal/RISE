@@ -78,6 +78,7 @@ public class AuthController {
         AuthenticationResponse authenticationResponse = new AuthenticationResponse();
         if(optionalUser.isPresent()){
             authenticationResponse.setJwt(jwt);
+            authenticationResponse.setName(optionalUser.get().getName());
             authenticationResponse.setUserRole(optionalUser.get().getUserRole());
             authenticationResponse.setUserId((optionalUser.get().getId()));
         }
